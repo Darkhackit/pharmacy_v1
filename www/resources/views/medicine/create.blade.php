@@ -72,10 +72,10 @@
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="location">
-                                                Manufacture Date
+                                                Alert Quantity
                                             </label>
-                                            <input type="date" class="form-control   required" value="{{ date('Y-m-d')}}" id="manDate" name="manDate" placeholder="Manufacture Date">
-                                            <div class="text-danger error-manDate"></div>
+                                            <input type="number" class="form-control   required" value="0" id="manDate" name="alert_quantity" placeholder="Minimum Alert Quantity">
+                                            <div class="text-danger error-alert_quantity"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -398,7 +398,7 @@ $(".steps-validation").steps({
             error: (jqXHR,textStatus , errorThrown) => {
 
 
-                data = jqXHR.responseJSON;
+                data = jqXHR;
                 console.log(data)
                 toastr.error('The given data was invalid.', 'The given data was invalid.', { "showMethod": "fadeIn", "hideMethod": "fadeOut", timeOut: 2000 });
 

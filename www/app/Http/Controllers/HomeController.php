@@ -22,6 +22,7 @@ class HomeController extends Controller
      *
      * @return void
      */
+    public $lowStock = [];
     public function __construct()
     {
         $this->middleware('auth');
@@ -152,11 +153,15 @@ class HomeController extends Controller
 
         $date = date("Y-m-d");
 
-        $lowStock = DB::table('medicines')
-            ->where("stock", "<=", 1)
-            ->get();
+        $lowStock = DB::table('medicines')->get();
+        foreach ($lowStock as $item) {
 
-        return response()->json($lowStock);
+            if ($item->stock <= $item->alert_quantity) {
+                array_push($this->lowStock,$item);
+            }
+        }
+
+        return response()->json($this->lowStock);
     }
 
     public function purchaseOwing()

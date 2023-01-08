@@ -72,10 +72,11 @@ class MedicineController extends Controller
         $medicine->generic_name = $request->generic;
         $medicine->strength = $request->strength;
         $medicine->half_life = $request->halfLife;
-        $medicine->manDate = $request->manDate;
+        $medicine->manDate = date('Y-m-d');
         $medicine->exDate = $request->expDate;
         $medicine->stock = $request->stock;
         $medicine->purchase_price = $request->pprice;
+        $medicine->alert_quantity = $request->alert_quantity;
         $medicine->selling_price = $request->sprice;
         $medicine->manufacturer_id = $request->manufacture_id;
         $medicine->supplier_id = $request->supply_id;

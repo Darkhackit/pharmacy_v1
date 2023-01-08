@@ -96,18 +96,18 @@ card-img-right">
                                                     $days = $interval->format('%R%a');
                                                 @endphp
 
-                                                @if($days < 100)
+                                                @if($days < 90 && $medicine->stock > 0)
 
                                                 <tr>
                                                     <td>{{ $medicine->name }}</td>
                                                     <td>
-                                                        @if($days <= 99 && $days >= 50 )
+                                                        @if($days <= 89 && $days >= 60 )
                                                         <div class="chip chip-warning">
                                                             <div class="chip-body">
                                                                 <div class="chip-text">{{$days}}</div>
                                                             </div>
                                                         </div>
-                                                        @elseif($days < 49 && $days > 0)
+                                                        @elseif($days < 59 && $days > 30)
                                                         <div class="chip chip-danger">
                                                             <div class="chip-body">
                                                                 <div class="chip-text">{{$days}}</div>
@@ -336,32 +336,17 @@ card-img-right">
                                     @foreach ($medicine_stocks as $medicine)
 
 
-                                    @if($medicine->stock <= 99)
+                                    @if($medicine->stock <= $medicine->alert_quantity)
 
 
                                     <tr>
                                         <td>{{ $medicine->name }}</td>
                                         <td>
-                                            @if($medicine->stock <= 99 && $medicine->stock >= 50 )
-                                            <div class="chip chip-warning">
-                                                <div class="chip-body">
-                                                    <div class="chip-text">{{$medicine->stock}}</div>
-                                                </div>
-                                            </div>
-                                            @elseif($medicine->stock <= 49)
                                             <div class="chip chip-danger">
                                                 <div class="chip-body">
                                                     <div class="chip-text">{{$medicine->stock}}</div>
                                                 </div>
                                             </div>
-                                            @else
-                                            <div class="chip chip-success">
-                                                <div class="chip-body">
-                                                    <div class="chip-text">{{$medicine->stock}}</div>
-                                                </div>
-                                            </div>
-                                            @endif
-
                                         </td>
 
 
@@ -486,7 +471,7 @@ card-img-right">
                      $days = $interval->format('%R%a');
                  @endphp
 
-                 @if($days < 30)
+                 @if($days < 30 && $medicine->stock > 0)
 
                  <tr>
                      <td>{{ $medicine->name }}</td>
@@ -645,7 +630,7 @@ card-img-right">
             stops: [0, 100]
           },
         },
-        series: [{{ ceil($item->quantity / ($realStock * 100)) }} ],
+        series: [{{ ceil($item->quantity == 0 ? 0 : $item->quantity  / ($realStock * 100)) }} ],
         stroke: {
           lineCap: 'round'
         },

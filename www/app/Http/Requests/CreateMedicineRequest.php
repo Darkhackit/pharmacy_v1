@@ -28,7 +28,7 @@ class CreateMedicineRequest extends FormRequest
             'name' => 'required|unique:medicines',
             'strength' => 'required',
             'halfLife' => 'required',
-            'manDate' => 'required',
+            'alert_quantity' => 'required',
             'expDate' => 'required',
             'stock' => 'required',
             'pprice' => 'required',
