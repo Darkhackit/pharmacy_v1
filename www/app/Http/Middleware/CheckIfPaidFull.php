@@ -17,7 +17,7 @@ class CheckIfPaidFull
     {
         $date = date('Y-m-d');
 
-        if($date >= '2023-10-02') {
+        if($date >= '2024-10-02') {
 
             return redirect()->route('cutOff');
         }

@@ -70,6 +70,7 @@
     <link rel="stylesheet" type="text/css" href="{{URL::asset('assets/css/style.css')}}">
     <!-- END: Custom CSS-->
 
+
 </head>
 <!-- END: Head-->
 
@@ -88,7 +89,7 @@
     <!-- END: Main Menu-->
 
     <!-- BEGIN: Content-->
-    <div class="app-content content">
+    <div class="app-content content" id="app">
         <div class="content-overlay"></div>
         <div class="header-navbar-shadow"></div>
         <div class="content-wrapper">

@@ -316,6 +316,8 @@
                             data = jqXHR.responseJSON;
                             console.log(data)
 
+                            toastr.warning('ERROR', data.errors.server[0], { "showMethod": "fadeIn", "hideMethod": "fadeOut", timeOut: 10000 });
+
                             // if(data.errors) {
                             // if(data.errors.name) {
 

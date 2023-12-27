@@ -8,7 +8,10 @@ use App\Purchase;
 use App\Manufacturer;
 use App\Purchase_Owing;
 use App\Purchase_Details;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use App\Http\Requests\AddPurchaseRequest;
 use App\Supplier;
@@ -18,7 +21,7 @@ class PurchaseController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function index()
     {
@@ -36,7 +39,7 @@ class PurchaseController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -51,14 +54,16 @@ class PurchaseController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function store(AddPurchaseRequest $request)
+    public function store(AddPurchaseRequest $request): JsonResponse
     {
         $invoice_exist = Purchase::where('invoice_number',$request->invoice)->first();
         if($invoice_exist){
 
-            return response()->json(['error' => 'invoice already exist']);
+            return response()->json(['error' => [
+                'server' => ['invoice already exist']
+            ]],422);
         }
 
         $manufacture = $request->manufacture_id;
@@ -73,33 +78,37 @@ class PurchaseController extends Controller
         $purchase_price = $request->purchase_price;
         $netTotal = $request->netTotal;
 
-        $purchase = new Purchase();
-        $purchase->manufacture = $manufacture;
-        $purchase->purchase_date = $date;
-        $purchase->total = $request->total;
-        $purchase->date = date('Y-m-d');
-        $purchase->purchase_id = mt_rand().''.date('Ymd');
-        $purchase->invoice_number = $invoice;
-        $purchase->payment = $payment;
-
-        if($request->payment_date)
-        {
-            if($request->paid_amount > $request->total)
-            {
-                return response()->json(['error' => 'Paid amount cannot be bigger than the total']);
-            }
-            $purchase->status = false;
-        }
-
-        $purchase->save();
-
-        if($purchase->id) {
-
-            $purchase_detail = [];
-            $purchase_owing = [];
-
+        DB::beginTransaction();
+        try {
+            $purchase = new Purchase();
+            $purchase->manufacture = $manufacture;
+            $purchase->purchase_date = $date;
+            $purchase->total = $request->total;
+            $purchase->date = date('Y-m-d');
+            $purchase->purchase_id = mt_rand().''.date('Ymd');
+            $purchase->invoice_number = $invoice;
+            $purchase->payment = $payment;
 
             if($request->payment_date)
+            {
+                if($request->paid_amount > $request->total)
+                {
+                    return response()->json(['errors' => [
+                        'server' => ["Paid amount cannot be bigger than the total"]
+                    ]],422);
+                }
+                $purchase->status = false;
+            }
+
+            $purchase->save();
+
+            if($purchase->id) {
+
+                $purchase_detail = [];
+                $purchase_owing = [];
+
+
+                if($request->payment_date)
                 {
 
                     $purchase_owing[] = [
@@ -112,40 +121,53 @@ class PurchaseController extends Controller
                 }
 
 
-            for($i = 0; $i < count($quantity); $i++){
+                for($i = 0; $i < count($quantity); $i++){
+                    $medicine = Medicine::find($medicineID[$i]);
+                    $now = now()->format('Y-m-d');
+                    $expiryDate = Carbon::createFromDate($expired[$i])->format('Y-m-d');
+
+                    if (Carbon::createFromDate($now)->gt(Carbon::createFromDate($expiryDate))) {
+                        return \response()->json(["errors" => [
+                            "server" => ["The expiry date for {$medicine->name} is not correct"]
+                        ]],422);
+                    }
+                    $purchase_detail[] = [
+                        "purchase_id" => $purchase->id,
+                        "medicine_id" => $medicineID[$i],
+                        "quantity" => $quantity[$i],
+                        "ext_date" => $expired[$i],
+                        "purchase_price" => $purchase_price[$i],
+                        "total" => $netTotal[$i],
+                        "date" => date('Y-m-d'),
+
+                    ];
 
 
 
-                $purchase_detail[] = [
-                "purchase_id" => $purchase->id,
-                "medicine_id" => $medicineID[$i],
-                "quantity" => $quantity[$i],
-                "ext_date" => $expired[$i],
-                "purchase_price" => $purchase_price[$i],
-                "total" => $netTotal[$i],
-                "date" => date('Y-m-d'),
-
-                ];
 
 
 
-                $medicine = Medicine::find($medicineID[$i]);
+                    $medicine->stock = $medicine->stock + $quantity[$i];
+                    $medicine->exDate = $expired[$i];
+                    $medicine->purchase_price = $purchase_price[$i];
+                    $medicine->selling_price = $newPrice[$i];
+                    $medicine->update();
 
 
-                $medicine->stock = $medicine->stock + $quantity[$i];
-                $medicine->exDate = $expired[$i];
-                $medicine->purchase_price = $purchase_price[$i];
-                $medicine->selling_price = $newPrice[$i];
-                $medicine->update();
+                }
 
+                // dd($newMed,$purchase_detail);
+                Purchase_Details::insert($purchase_detail);
+                Purchase_Owing::insert($purchase_owing);
 
+                DB::commit();
+                return response()->json(['success' => true]);
             }
-
-            // dd($newMed,$purchase_detail);
-            Purchase_Details::insert($purchase_detail);
-            Purchase_Owing::insert($purchase_owing);
-
-            return response()->json(['success' => true]);
+        }catch (\Exception $exception) {
+            DB::rollBack();
+            return \response()->json(["errors" => [
+                "server" => [$exception->getMessage()]
+            ]]);
         }
     }
 
@@ -153,7 +175,7 @@ class PurchaseController extends Controller
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function show($id)
     {
@@ -168,7 +190,7 @@ class PurchaseController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -180,7 +202,7 @@ class PurchaseController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -191,7 +213,7 @@ class PurchaseController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function destroy($id)
     {

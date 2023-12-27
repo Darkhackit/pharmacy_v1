@@ -9,6 +9,7 @@ use App\Purchase_Owing;
 use App\Sales;
 use App\Setting;
 use App\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -38,7 +39,6 @@ class HomeController extends Controller
      */
     public function index()
     {
-
         $checkSales = Sales::where('date', date('Y-m-d'))->count();
         $result = DB::table('sales')
             ->selectRaw('sum(total_price) as t')
@@ -46,7 +46,7 @@ class HomeController extends Controller
             ->get();
         $medicine_count = Medicine::count();
         $medicine_stocks = Medicine::all();
-        $medicine_expires = Medicine::all();
+        $medicine_expires = Medicine::where('stock','>',0)->orWhere('exDate','<',now()->format('Y-m-d'))->whereBetween('exDate',[now()->subMonths(3)->startOfMonth()->format('Y-m-d'),now()->endOfMonth()->format('Y-m-d')])->get();
         $sales = DB::table('sales')->join('customers', 'customers.id', '=', 'sales.customer_id')->join('users', 'users.id', '=', 'sales.user_id')
             ->select('sales.code', 'customers.customer_name', 'users.name', 'sales.total_price', 'sales.payment_method', 'sales.created_at', 'sales.id')
             ->orderByDesc('sales.id')
@@ -151,13 +151,13 @@ class HomeController extends Controller
     public function getLowStock()
     {
 
-        $date = date("Y-m-d");
-
         $lowStock = DB::table('medicines')->get();
         foreach ($lowStock as $item) {
 
-            if ($item->stock <= $item->alert_quantity) {
-                array_push($this->lowStock,$item);
+            if(now()->lessThan(Carbon::createFromDate($item->exDate))) {
+                if ((integer)$item->stock <= (integer)$item->alert_quantity) {
+                    $this->lowStock[] = $item;
+                }
             }
         }
 

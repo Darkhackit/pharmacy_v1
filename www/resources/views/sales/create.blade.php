@@ -33,7 +33,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <div class="position-relative">
-                                            <input type="text" id="code" class="form-control" name="code" value="{{ mt_rand() }}" placeholder="" readonly>
+                                            <input type="text" id="code" class="form-control" name="code" value="{{ microtime(true) }}" placeholder="" readonly>
                                             {{-- <div class="form-control-position">
                                                 <i class="feather icon-mail"></i>
                                             </div> --}}
@@ -54,6 +54,14 @@
                                             {{-- <div class="form-control-position">
                                                 <i class="fa fa-users"></i>
                                             </div> --}}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+
+                                        <div class="position-relative ">
+                                           <input type="date" name="date" value="{{date('Y-m-d')}}" class="form-control ">
                                         </div>
                                     </div>
                                 </div>

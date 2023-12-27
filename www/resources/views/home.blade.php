@@ -96,24 +96,24 @@ card-img-right">
                                                     $days = $interval->format('%R%a');
                                                 @endphp
 
-                                                @if($days < 90 && $medicine->stock > 0)
+                                                @if((integer)$days < 90 && (integer)$medicine->stock > 0)
 
                                                 <tr>
                                                     <td>{{ $medicine->name }}</td>
                                                     <td>
-                                                        @if($days <= 89 && $days >= 60 )
+                                                        @if((integer)$days >= 60  && (integer)$days <= 89)
                                                         <div class="chip chip-warning">
                                                             <div class="chip-body">
                                                                 <div class="chip-text">{{$days}}</div>
                                                             </div>
                                                         </div>
-                                                        @elseif($days < 59 && $days > 30)
+                                                        @elseif((integer)$days > 30 && (integer)$days <= 59 )
                                                         <div class="chip chip-danger">
                                                             <div class="chip-body">
                                                                 <div class="chip-text">{{$days}}</div>
                                                             </div>
                                                         </div>
-                                                        @elseif($days < 0)
+                                                        @elseif((integer)$days < 0)
                                                         <div class="chip chip-danger">
                                                             <div class="chip-body">
                                                                 <div class="chip-text">{{'expired'}}</div>

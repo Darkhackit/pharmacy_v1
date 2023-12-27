@@ -201,9 +201,9 @@
                                     </div>
                                     <div class="col-md-6 col-12">
                                         <div class="form-label-group">
-                                            <input type="date" class="form-control  required" id="manDate" name="manDate" placeholder="Manufacture Date">
+                                            <input type="number" class="form-control  required" id="alert_quantity" name="alert_quantity" placeholder="Alert Quantity">
                                             <div class="text-danger error-manDate"></div>
-                                            <label for="email-id-column">Manufacture Date</label>
+                                            <label for="email-id-column">Alert Quantity</label>
                                         </div>
                                     </div>
                                     <div class="col-md-6 col-12">
@@ -457,7 +457,7 @@
             $('#generic').val(feedback.medicine.generic_name);
             $('#strength').val(feedback.medicine.strength);
             $('#halfLife').val(feedback.medicine.half_life);
-            $('#manDate').val(feedback.medicine.manDate);
+            $('#alert_quantity').val(feedback.medicine.alert_quantity);
             $('#expDate').val(feedback.medicine.exDate);
             $('#pprice').val(feedback.medicine.purchase_price);
             $('#sprice').val(feedback.medicine.selling_price);
@@ -541,7 +541,7 @@
  let generic = $('#generic').val();
  let strength = $('#strength').val();
  let half_life = $('#halfLife').val();
- let manDate =  $('#manDate').val();
+ let alert_quantity =  $('#alert_quantity').val();
  let exDate = $('#expDate').val();
  let pprice = $('#pprice').val();
  let sprice = $('#sprice').val();
@@ -562,7 +562,7 @@
   form.append('generic',generic);
   form.append('strength',strength);
   form.append('half_life',half_life);
-  form.append('manDate',manDate);
+  form.append('alert_quantity',alert_quantity);
   form.append('expDate',exDate);
   form.append('pprice',pprice);
   form.append('sprice',sprice);
@@ -600,12 +600,13 @@
 
                 toastr.success('Medicine Updated successfully.', 'Medicine Updated successfully!', { "showMethod": "fadeIn", "hideMethod": "fadeOut", timeOut: 2000 });
 
-                setTimeout(function () {
-                 //   $("#submitMedicine").trigger("reset");
-                    location.reload()
-
-
-                },2000)
+                // setTimeout(function () {
+                //  //   $("#submitMedicine").trigger("reset");
+                //     location.reload()
+                //
+                //
+                // },2000)
+                $('#xlarge').modal('hide')
             }
 
         }

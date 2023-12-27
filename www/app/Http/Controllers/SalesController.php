@@ -11,7 +11,9 @@ use App\Sales_Details;
 use App\SalesReturn;
 use App\User;
 use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use PDF;
@@ -21,7 +23,7 @@ class SalesController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function __construct()
     {
@@ -45,7 +47,7 @@ class SalesController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function create()
     {
@@ -73,90 +75,100 @@ class SalesController extends Controller
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function store(CreateSalesRequest $request)
+    public function store(CreateSalesRequest $request): JsonResponse
     {
+        DB::beginTransaction();
+        try {
 
+            $sale = new Sales();
+            $sale->code = $request->code;
+            $sale->customer_id = $request->customer;
+            $sale->user_id = $request->seller;
+            $sale->tax = (float)$request->taxPrice;
+            $sale->net_price = (float)$request->netPrice;
+            $sale->total_price = (float)$request->total;
+            $sale->date = $request->date;
+            $sale->payment_method = $request->PaymentMethod;
+            $sale->type = $request->type;
 
-        $sale = new Sales();
-        $sale->code = $request->code;
-        $sale->customer_id = $request->customer;
-        $sale->user_id = $request->seller;
-        $sale->tax = $request->taxPrice;
-        $sale->net_price = $request->netPrice;
-        $sale->total_price = $request->total;
-        $sale->date = date('Y-m-d');
-        $sale->payment_method = $request->PaymentMethod;
-        $sale->type = $request->type;
+            if ($request->paidAmount) {
 
-        if ($request->paidAmount) {
-
-            $sale->paid_Amount = $request->paidAmount;
-        }
-        if ($request->due) {
-
-            $sale->due = $request->due;
-        }
-
-        $price = $request->price;
-        $purchase = $request->purchasePrice;
-        $stock = $request->stock;
-        $quantity = $request->quantity;
-        $productName = $request->profuctName;
-        $medicineID = $request->proID;
-        $customer_id = $request->customer;
-        $mainProfit = $request->mainProfit;
-
-        $sale->save();
-        $quantities =   array_map('intval', $quantity);
-        $customer = Customer::find($customer_id);
-        $customer->last_purchase = date('d-m-Y');
-        $customer->number_of_purchase = $customer->number_of_purchase + array_sum($quantities);
-        $customer->update();
-
-        if ($sale->id) {
-
-            for ($i = 0; $i < count($price); $i++) {
-
-
-
-                //dd($quantity[$i]);
-
-                $profit = $mainProfit[$i] - $purchase[$i];
-
-                if ($request->type != 'Profoma') {
-
-                    $remaining = $stock[$i] - $quantity[$i];
-                }
-
-
-
-
-
-                $medicine = Medicine::find($medicineID[$i]);
-                if ($request->type != 'Profoma') {
-
-                    $medicine->stock = $remaining;
-                }
-
-                $medicine->number_of_sales = $medicine->number_of_sales + $quantity[$i];
-                $medicine->most_p = date('Y-m-d');
-                $medicine->update();
-
-
-
-                $sales_detail = new Sales_Details();
-                $sales_detail->sales_id = $sale->id;
-                $sales_detail->medicine_id = $medicineID[$i];
-                $sales_detail->price = $price[$i];
-                $sales_detail->quantity = $quantity[$i];
-                $sales_detail->profit = $profit * $quantity[$i];
-                $sales_detail->customer_id = $customer_id;
-                $sales_detail->date = date('Y-m-d');
-
-                $sales_detail->save();
+                $sale->paid_Amount = (float)$request->paidAmount;
             }
+            if ($request->due) {
+
+                $sale->due = (float)$request->due;
+            }
+
+            $price = $request->price;
+            $purchase = $request->purchasePrice;
+            $stock = $request->stock;
+            $quantity = $request->quantity;
+            $productName = $request->profuctName;
+            $medicineID = $request->proID;
+            $customer_id = $request->customer;
+            $mainProfit = $request->mainProfit;
+
+            $sale->save();
+            $quantities =   array_map('intval', $quantity);
+            $customer = Customer::find($customer_id);
+            $customer->last_purchase = date('d-m-Y');
+            $customer->number_of_purchase = $customer->number_of_purchase + array_sum($quantities);
+            $customer->update();
+
+            if ($sale->id) {
+
+                for ($i = 0; $i < count($price); $i++) {
+
+
+
+                    //dd($quantity[$i]);
+
+                    $profit = (float)$mainProfit[$i] - (float)$purchase[$i];
+
+                    if ($request->type != 'Profoma') {
+
+                        $remaining = (float)$stock[$i] - (float)$quantity[$i];
+                    }
+
+
+
+
+
+                    $medicine = Medicine::find($medicineID[$i]);
+                    if ($request->type != 'Profoma') {
+
+                        $medicine->stock = (float)$remaining;
+                    }
+
+                    $medicine->number_of_sales = (float)$medicine->number_of_sales + (float)$quantity[$i];
+                    $medicine->most_p = date('Y-m-d');
+                    $medicine->update();
+
+
+
+                    $sales_detail = new Sales_Details();
+                    $sales_detail->sales_id = $sale->id;
+                    $sales_detail->medicine_id = $medicineID[$i];
+                    $sales_detail->price = (float)$price[$i];
+                    $sales_detail->quantity = (float)$quantity[$i];
+                    $sales_detail->profit = $profit * (float)$quantity[$i];
+                    $sales_detail->customer_id = $customer_id;
+                    $sales_detail->date = $request->date;
+
+                    $sales_detail->save();
+                }
+            }
+
+            DB::commit();
+
+        }catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->json(['errors' => [
+                "customer" => [$exception->getMessage()]
+            ]],422);
         }
 
         return response()->json(['success' => true]);
@@ -165,10 +177,10 @@ class SalesController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show(int $id): JsonResponse
     {
 
         $sales = DB::table('sales')
@@ -184,7 +196,7 @@ class SalesController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function edit($id)
     {
@@ -196,7 +208,7 @@ class SalesController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function update(Request $request, $id)
     {
@@ -206,10 +218,10 @@ class SalesController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param int $id
+     * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy(int $id): JsonResponse
 
     {
 
@@ -218,7 +230,7 @@ class SalesController extends Controller
         return response()->json(['success' => true]);
     }
 
-    public function range(Request $request)
+    public function range(Request $request): JsonResponse
     {
 
         $start = $request->startDate;
@@ -474,25 +486,16 @@ class SalesController extends Controller
 
     public function fetchSales(Request $request)
     {
+        $from = $request->from_date ?  $request->from_date :  now()->startOfMonth()->format("Y-m-d");
+        $to = $request->to_date ? $request->to_date :  now()->endOfMonth()->format("Y-m-d");
         if ($request->ajax()) {
-            if ($request->from_date != "" && $request->to_date != "") {
                 $data = DB::table('sales_details')
                     ->join('sales', 'sales.id', '=', 'sales_details.sales_id')
                     ->join('medicines', 'medicines.id', '=', 'sales_details.medicine_id')
                     ->join('customers', 'customers.id', '=', 'sales_details.customer_id')
                     ->select('sales.code', 'medicines.name', 'sales_details.quantity', 'sales_details.price', 'sales_details.profit', 'sales_details.date', 'customers.customer_name')
-                    ->whereBetween('sales_details.date', [$request->from_date, $request->to_date])
+                    ->whereBetween('sales_details.date', [$from, $to])
                     ->get();
-            } else {
-                $data = DB::table('sales_details')
-                    ->join('sales', 'sales.id', '=', 'sales_details.sales_id')
-                    ->join('medicines', 'medicines.id', '=', 'sales_details.medicine_id')
-                    ->join('customers', 'customers.id', '=', 'sales_details.customer_id')
-                    ->select('sales.code', 'medicines.name', 'sales_details.quantity', 'sales_details.price', 'sales_details.profit', 'sales_details.date', 'customers.customer_name')
-                    ->orderBy('sales_details.date', 'desc')
-                    ->get();
-            }
-
             return response()->json($data);
         }
     }

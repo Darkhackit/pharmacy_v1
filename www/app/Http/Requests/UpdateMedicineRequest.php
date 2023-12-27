@@ -24,10 +24,10 @@ class UpdateMedicineRequest extends FormRequest
     public function rules()
     {
         return [
-            
+
             'name' => 'required',
             'strength' => 'required',
-            'manDate' => 'required',
+            'alert_quantity' => 'required',
             'expDate' => 'required',
             'pprice' => 'required',
             'sprice' => 'required',

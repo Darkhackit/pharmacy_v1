@@ -41,10 +41,10 @@
                     <li><a href="{{ route('unit.index') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Unit</span></a>
                     </li>
                     @endpermission
-                    @permission(['Medicine Report','All'])
-                    <li><a href="{{ route('med.report') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Medicine Report</span></a>
-                    </li>
-                    @endpermission
+{{--                    @permission(['Medicine Report','All'])--}}
+{{--                    <li><a href="{{ route('med.report') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Medicine Report</span></a>--}}
+{{--                    </li>--}}
+{{--                    @endpermission--}}
                     @permission(['Medicine checkStock','All'])
                     <li><a href="{{ route('med.stock') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Check Stock</span></a>
                     </li>
@@ -71,10 +71,10 @@
                     <li><a href="{{ route('sales.index') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Manage Sales</span></a>
                     </li>
                     @endpermission
-                    @permission(['Sale Report','All'])
-                    <li><a href="{{ route('sales.report') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Sales Report</span></a>
-                    </li>
-                    @endpermission
+{{--                    @permission(['Sale Report','All'])--}}
+{{--                    <li><a href="{{ route('sales.report') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Sales Report</span></a>--}}
+{{--                    </li>--}}
+{{--                    @endpermission--}}
                     @permission(['Sale Person','All'])
                     <li><a href="{{ route('saPerson') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="eCommerce">Sales Person Filter</span></a>
                     </li>
@@ -214,6 +214,25 @@
             @endpermission
             @permission(['Manufacture List','All'])
             <li class=" nav-item"><a href="{{route('manufacture.index')}}"><i class="fa fa-certificate"></i><span class="menu-title" data-i18n="User">Manufacturer</span></a>
+            </li>
+            @endpermission
+
+            @permission(['All'])
+            <li class=" nav-item"><a href="index.html"><i class="fa fa-thumbs-down"></i><span class="menu-title" data-i18n="Dashboard">Report</span></a>
+                <ul class="menu-content">
+                    @permission(['All'])
+                    <li class=""><a href="{{ route('report.sales') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Sales Report</span></a>
+                    </li>
+                    @endpermission
+                    @permission(['All'])
+                    <li class=""><a href="{{ route('purchases.return') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Purchases Report</span></a>
+                    </li>
+                    @endpermission
+                    @permission(['All'])
+                    <li class=""><a href="{{ route('return.list') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Medicine Report</span></a>
+                    </li>
+                    @endpermission
+                </ul>
             </li>
             @endpermission
 

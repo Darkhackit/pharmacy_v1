@@ -21,7 +21,7 @@
                                             <label for="firstName3">
                                                 Barcode or QrCode
                                             </label>
-                                            <input type="text" class="form-control " id="code" name="code" placeholder="Barcode">
+                                            <input type="text" class="form-control" id="code" name="code" placeholder="Barcode">
                                             <div class="text-danger error-barcode"></div>
                                         </div>
                                     </div>
@@ -566,6 +566,40 @@ $(".steps-validation").validate({
 
 
 
+    })
+
+    $("#name").change(function (e) {
+        console.log(e.target.value)
+        let name = e.target.value
+        $(this).removeClass('border-danger')
+        $(this).removeClass('border-success')
+        $.ajax({
+            url: "{{url('/medicine/check_name')}}" + "/" + name,
+            method:'GET',
+            data:{ame:name},
+            dataType:'JSON',
+            cache:false,
+            processData:false,
+            contentType:false,
+            success: function (feedback) {
+                if(feedback === true) {
+                    toastr.error(`${name} already exist`, 'Error', { "showMethod": "fadeIn", "hideMethod": "fadeOut", timeOut: 5000 });
+                    $("#name").addClass('border-danger')
+                }else {
+                    $("#name").addClass('border-success')
+                }
+
+                console.log(feedback)
+            },
+            error: (jqXHR,textStatus , errorThrown) => {
+
+
+                data = jqXHR;
+                console.log(data)
+                toastr.error('The given data was invalid.', 'The given data was invalid.', { "showMethod": "fadeIn", "hideMethod": "fadeOut", timeOut: 2000 });
+
+            }
+        })
     })
 
 

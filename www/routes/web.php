@@ -97,6 +97,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('customers/purchases','CustomerController@purchaseCustomersubmit')->name('customer.purchased');
     Route::post('customers/pdf','CustomerController@customerPdf')->name('customer.pdf');
     Route::get('medicine/hidden/{id}','MedicineController@hidden');
+    Route::get('medicine/check_name/{name}','MedicineController@check_name');
+
+    Route::get('report/sales','ReportController@sales')->name('report.sales');
 
 
 

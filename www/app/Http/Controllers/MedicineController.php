@@ -67,7 +67,7 @@ class MedicineController extends Controller
     public function store(CreateMedicineRequest $request)
     {
         $medicine = new Medicine();
-        $medicine->name = $request->name;
+        $medicine->name = strtoupper($request->name);
         $medicine->barcode = $request->code;
         $medicine->generic_name = $request->generic;
         $medicine->strength = $request->strength;
@@ -145,12 +145,13 @@ class MedicineController extends Controller
      */
     public function update(UpdateMedicineRequest $request, Medicine $medicine)
     {
+//        dd($request->all());
         $medicine->barcode = $request->code;
-        $medicine->name = $request->name;
+        $medicine->name = strtoupper($request->name);
         $medicine->generic_name = $request->generic;
         $medicine->strength = $request->strength;
         $medicine->half_life = $request->half_life;
-        $medicine->manDate = $request->manDate;
+        $medicine->alert_quantity = $request->alert_quantity;
         $medicine->exDate = $request->expDate;
         $medicine->purchase_price = $request->pprice;
         $medicine->selling_price = $request->sprice;
@@ -178,7 +179,7 @@ class MedicineController extends Controller
             $medicine->image = $image_name;
         }
 
-        $medicine->save();
+        $medicine->update();
 
         return response()->json(['success' => true]);
     }
@@ -264,13 +265,21 @@ class MedicineController extends Controller
 
     public function resetstock(Request $request)
     {
-        $medicines = Medicine::where('name', '!=', null)->get();
+//        $medicines = Medicine::where('name', '!=', null)->get();
+//
+//        foreach ($medicines as $medicine) {
+//            $medicine->stock = 0;
+//
+//            $medicine->update();
+//        }
 
-        foreach ($medicines as $medicine) {
-            $medicine->stock = 0;
-
-            $medicine->update();
-        }
+        DB::table('medicines')->chunkById(50,function ($medicines) {
+            foreach ($medicines as $medicine) {
+                 DB::table('medicines')
+                     ->where('id',$medicine->id)
+                     ->update(['stock' => 0]);
+           }
+        });
 
         return response()->json(['success' => true]);
     }
@@ -285,16 +294,46 @@ class MedicineController extends Controller
         $medicine = $request->medicine;
         $physicalStock = $request->physicalStock;
 
-        for ($i = 0; $i < count($medicine); $i++) {
+        DB::beginTransaction();
+        try {
+            for ($i = 0; $i < count($medicine); $i++) {
+                $med = Medicine::find($medicine[$i]);
 
-            $med = Medicine::find($medicine[$i]);
+                if (!$med) {
+                    DB::rollBack();
+                    return response()->json(['errors' => [
+                        'server' => ["Some of the fields are empty"]
+                    ]],422);
+                }
 
-            $med->stock = $physicalStock[$i];
+                if ($medicine[$i] == "" || $physicalStock[$i] == "") {
+                    DB::rollBack();
+                    return response()->json(['errors' => [
+                        'server' => ["{$med->name} cannot be empty or less than 0"]
+                    ]],422);
+                }
 
-            $med->update();
+                if ((float)$physicalStock[$i] < 0) {
+                    DB::rollBack();
+                    return response()->json(['errors' => [
+                        'server' => ["{$med->name} cannot be empty or less than 0"]
+                    ]],422);
+                }
+
+                $med->stock = (float)$physicalStock[$i];
+
+                $med->update();
+            }
+            DB::commit();
+            return response()->json(['success' => true]);
+        }catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->json(['errors' => [
+                'server' => [$exception->getMessage()]
+            ]],422);
         }
 
-        return response()->json(['success' => true]);
+
     }
 
     public function hidden($id)
@@ -309,5 +348,17 @@ class MedicineController extends Controller
         $medicine->update();
 
         return response()->json(['success' => true]);
+    }
+
+    public function check_name(Request $request)
+    {
+        $name = strtoupper($request->name);
+
+        $medicine = Medicine::where('name',$name)->first();
+        if($medicine) {
+            return response()->json(true);
+        }
+
+        return response()->json(false);
     }
 }

@@ -139,6 +139,9 @@
 
     $('.populate').click(function () {
 
+       console.log( $('.pnam').length)
+        if( $('.pnam').length >= 30) return
+
         $('#maintBody').append(`
 
         <tr>
@@ -248,18 +251,24 @@ $(document).on('click','.update',function () {
             {
                 stn = str(new Date())
                 $('#date').val(str(new Date()))
-
-                localStorage.setItem('date',JSON.stringify(stn))
-             Swal.fire({
+                window.localStorage.setItem('date',JSON.stringify(stn))
+               Swal.fire({
                  type: "success",
                  text: 'Stock Table Updated',
                  confirmButtonClass: 'btn btn-success',
                })
-
                setTimeout(function () {
                    location.reload()
                },3000)
             }
+            },
+            error: (jqXHR,textStatus , errorThrown) => {
+
+
+                data = jqXHR;
+                console.log(data.responseJSON)
+                toastr.error('ERROR', data.responseJSON.errors.server[0], { "showMethod": "fadeIn", "hideMethod": "fadeOut", timeOut: 2000 });
+
             }
 
         })
