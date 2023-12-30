@@ -61,6 +61,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('returned/list', 'SalesController@returnList')->name('return.list');
     Route::post('range', 'SalesController@range')->name('sales.range');
     Route::get('report', 'SalesController@report')->name('sales.report');
+    Route::get('getCurrentSales', 'SalesController@getCurrentSales')->name('getCurrentSales');
     Route::post('createpdf','SalesController@createpdf')->name('sales.pdf');
     Route::get('stock', 'MedicineController@stock')->name('medicine.stock');
     Route::get('expiration', 'MedicineController@expire')->name('medicine.expire');

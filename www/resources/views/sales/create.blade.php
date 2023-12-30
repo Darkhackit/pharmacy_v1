@@ -8,9 +8,7 @@
         <div class="card">
             <div class="card-header">
                 <h4 class="card-title">Start Sales &nbsp; <span> sales Made : ₵
-                @foreach ($bestSellers as $bestSeller)
-                    {{ $bestSeller->sale }}
-                @endforeach
+                   <span id="current_price"></span>
                 </span></h4>
             </div>
             <div class="card-content">
@@ -61,7 +59,7 @@
                                     <div class="form-group">
 
                                         <div class="position-relative ">
-                                           <input type="date" name="date" value="{{date('Y-m-d')}}" class="form-control ">
+                                           <input type="date" name="date" id="current_date" value="{{date('Y-m-d')}}" class="form-control ">
                                         </div>
                                     </div>
                                 </div>
@@ -234,6 +232,30 @@
 @section('script')
 
 <script>
+
+    $('#current_date').change(function () {
+        getCurrent()
+    })
+    const getCurrent = function () {
+        $.ajax({
+            url:'{{route('getCurrentSales')}}' + `?date=${$('#current_date').val()}`,
+            method:"GET",
+            success:function (response) {
+                if(response.sale) {
+                    $('#current_price').text(response.sale)
+                }else {
+                    $('#current_price').text(0)
+                }
+
+            },
+            error:function (error) {
+                console.log(error)
+            }
+        })
+    }
+    window.addEventListener('load',() => {
+        getCurrent()
+    })
 
     $('.salesTable tbody').on('click','button.addMedicine',function () {
 

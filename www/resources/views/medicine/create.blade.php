@@ -85,7 +85,7 @@
                                             <label for="emailAddress5">
                                                 Expiry Date
                                             </label>
-                                            <input type="date" class="form-control  required" value="2022-01-01" id="expDate" name="expDate" placeholder="Expiration Date">
+                                            <input type="date" class="form-control  required" value="{{now()->addYears(2)->format('Y-m-d')}}" id="expDate" name="expDate" placeholder="Expiration Date">
                                             <div class="text-danger error-expDate"></div>
                                         </div>
                                     </div>
@@ -94,7 +94,7 @@
                                             <label for="emailAddress5">
                                                 Stock
                                             </label>
-                                            <input type="number" class="form-control required" id="stock" name="stock" placeholder="Stock">
+                                            <input type="number" class="form-control required" id="stock" name="stock" value="0" placeholder="Stock">
                                             <div class="text-danger error-stock"></div>
                                         </div>
                                     </div>

@@ -51,6 +51,7 @@ class SalesController extends Controller
      */
     public function create()
     {
+//        dd(\request('date'));
         $customers = Customer::all();
         //  $medicines = DB::table('medicines')->where('stock','>','0')->get();
         if(\auth()->user()->email == "alicegodwill7@gmail.com") {
@@ -69,6 +70,20 @@ class SalesController extends Controller
             ->get();
         // dd($bestSellers);
         return view('sales.create', compact('customers', 'medicines', 'bestSellers'));
+    }
+
+    public function getCurrentSales(): JsonResponse
+    {
+        $bestSellers = DB::table('sales')
+            ->join('users', 'users.id', '=', 'sales.user_id')
+            ->select(DB::raw('SUM(sales.total_price) as sale'), DB::raw('users.name'), DB::raw('users.image'))
+            ->groupBy('sales.user_id')
+            ->orderByDesc('sales')
+            ->where('sales.date', \request('date'))
+            ->where('users.id', Auth::user()->id)
+            ->first();
+
+        return \response()->json($bestSellers);
     }
 
     /**

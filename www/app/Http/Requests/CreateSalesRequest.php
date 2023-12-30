@@ -30,6 +30,7 @@ class CreateSalesRequest extends FormRequest
             'taxPrice' => 'required',
             'netPrice' => 'required',
             'total' => 'required',
+            'date' => 'required|date',
             'PaymentMethod' => 'required',
             'profuctName' => 'required',
             'quantity' => 'required',
