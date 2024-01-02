@@ -92,6 +92,8 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('wastage', 'WastageController');
     Route::resource('wastage_type', 'WastageTypeController');
     Route::get('purchase/details/{id}', 'PurchaseController@purchaseDetails');
+    Route::get('filterMedicine/details', 'PurchaseController@filterMedicine')->name('filterMedicine');
+    Route::post('filterMedicine/details', 'PurchaseController@filterMedicineDetails')->name('purchase.filterMedicine');
     Route::post('resetstock','MedicineController@resetstock');
     Route::post('updatestockValue','MedicineController@updatestockValue');
     Route::get('customers/purchases','CustomerController@purchaseCustomer')->name('customer.purchase');

@@ -84,7 +84,7 @@
 
                                                     <fieldset class="form-label-group position-relative has-icon-left">
 
-                                                        <input id="password" type="password" placeholder="Password" id="user-password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
+                                                        <input id="password" type="password" placeholder="Password"  class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="current-password">
                                                         <div class="form-control-position">
                                                             <i class="feather icon-lock"></i>
                                                         </div>
@@ -158,15 +158,27 @@
 
 
 <script>
-    document.oncontextmenu = () => {
-        return false;
-    }
+    // document.oncontextmenu = () => {
+    //     return false;
+    // }
+    //
+    // $(document).keydown((e) => {
+    //
+    //     if(e.keyCode == 123) {
+    //
+    //         return false;
+    //     }
+    // })
 
-    $(document).keydown((e) => {
+    $('#remember').change(function () {
 
-        if(e.keyCode == 123) {
-
-            return false;
+        if($("#remember").is(':checked')) {
+            console.log(true)
+            $("#password").prop('type','text')
+        }else {
+            console.log(false)
+            $("#password").prop('type','password')
         }
+
     })
 </script>

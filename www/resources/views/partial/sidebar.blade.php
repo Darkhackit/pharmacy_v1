@@ -131,6 +131,10 @@
                    <li class=""><a href="{{ route('purchase.filter') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Filter Purchase</span></a>
                    </li>
                    @endpermission
+                   @permission(['Purchase Filter','All'])
+                   <li class=""><a href="{{ route('filterMedicine') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Filter Purchase Medicine</span></a>
+                   </li>
+                   @endpermission
 
 
                </ul>

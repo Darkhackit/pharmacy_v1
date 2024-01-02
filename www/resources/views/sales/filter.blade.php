@@ -13,7 +13,20 @@
                             <div  class="input-group-append">to</div>
                             <input type="text" class="form-control" name="to_date" id="to_date" readonly>
                         </div>
+                         <div class="col-md-6 col-12 mt-2">
+                             <div class="form-label-group">
+                                 <select name="manufacture_id" id="manufacture_id" class="form-control select2 pnam" >
+                                     <option disabled selected>Select Medicine</option>
+                                          @foreach ($medicines as $medicine)
+                                              <option value="{{ $medicine->id }}">{{ $medicine->name }}</option>
+                                          @endforeach
+
+                                 </select>
+                                 <label for="first-name-column">Select Medicine</label>
+                             </div>
+                         </div>
                      </div>
+
                      <div class="col-md-2">
                         <button type="button" name="filter" id="filter" class="btn btn-info">Filter</button>
                      </div>
@@ -80,18 +93,20 @@
             autoclose:true
         });
 
+        let medicine = $('#manufacture_id').val()
+
         let _token = $('input[name="_token"]').val();
 
         fetch_data()
 
-        function fetch_data (from_date = "" , to_date = "")
+        function fetch_data (from_date = "" , to_date = "",medicine = "")
         {
 
             $.ajax({
 
                 url:"{{ route('sales.fetch_data') }}",
                 method:'POST',
-                data:{from_date:from_date,to_date:to_date,_token:_token},
+                data:{from_date:from_date,to_date:to_date,_token:_token,medicine:medicine},
                 dataType:'json',
                 success: function (data)
                 {
@@ -165,10 +180,11 @@
         {
             let from_date = $('#from_date').val()
             let to_date = $('#to_date').val()
+            let medicine = $('#manufacture_id').val()
 
             if(from_date != "" && to_date != "")
             {
-                fetch_data(from_date,to_date)
+                fetch_data(from_date,to_date,medicine)
             }
             else
             {
@@ -180,8 +196,9 @@
         {
             let from_date =  $('#from_date').val('')
             let to_date = $('#to_date').val('')
+            let medicine = $('#manufacture_id').val()
 
-            fetch_data(from_date,to_date)
+            fetch_data(from_date,to_date,medicine)
         })
 
 

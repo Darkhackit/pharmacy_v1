@@ -122,11 +122,26 @@ class PurchaseController extends Controller
 
 
                 for($i = 0; $i < count($quantity); $i++){
+
                     $medicine = Medicine::find($medicineID[$i]);
                     $now = now()->format('Y-m-d');
                     $expiryDate = Carbon::createFromDate($expired[$i])->format('Y-m-d');
 
+                    if ((float)$request->purchase_price[$i] >= (float)$request->newPrice[$i]) {
+                        DB::rollBack();
+                            return \response()->json(["errors" => [
+                                "server" => ["The wholesale for {$medicine->name} cannot be greater than selling price"]
+                            ]],422);
+                    }
+                    if ((float)$quantity[$i] <= 0) {
+                        DB::rollBack();
+                        return \response()->json(["errors" => [
+                            "server" => ["The quantity for {$medicine->name} is not correct"]
+                        ]],422);
+                    }
+
                     if (Carbon::createFromDate($now)->gt(Carbon::createFromDate($expiryDate))) {
+                        DB::rollBack();
                         return \response()->json(["errors" => [
                             "server" => ["The expiry date for {$medicine->name} is not correct"]
                         ]],422);
@@ -167,7 +182,7 @@ class PurchaseController extends Controller
             DB::rollBack();
             return \response()->json(["errors" => [
                 "server" => [$exception->getMessage()]
-            ]]);
+            ]],422);
         }
     }
 
@@ -291,5 +306,28 @@ class PurchaseController extends Controller
 
 
         return response()->json($returns);
+    }
+    public function filterMedicine()
+    {
+        $medicines = Medicine::query()->get();
+
+        return view('purchase.filterMedicine',compact('medicines'));
+    }
+    public function filterMedicineDetails()
+    {
+        $from = request()->from_date ? request()->from_date : now()->startOfMonth()->format("Y-m-d");
+        $to = request()->to_date ? request()->to_date : now()->endOfMonth()->format("Y-m-d");
+        if (request()->ajax()) {
+            $data = DB::table('purchase__details')
+                ->join('purchases', 'purchases.id', '=', 'purchase__details.purchase_id')
+                ->join('medicines', 'medicines.id', '=', 'purchase__details.medicine_id')
+                ->select('purchases.invoice_number', 'medicines.name', 'purchase__details.quantity', 'purchase__details.purchase_price', 'purchase__details.ext_date', 'purchase__details.total', 'purchase__details.date')
+                ->when(request()->medicine, function ($query, $medicine) {
+                    $query->where('medicines.id', $medicine);
+                })
+                ->whereBetween('purchase__details.date', [$from, $to])
+                ->get();
+            return response()->json($data);
+        }
     }
 }

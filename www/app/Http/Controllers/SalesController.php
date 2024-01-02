@@ -496,7 +496,8 @@ class SalesController extends Controller
 
     public function getAllSales()
     {
-        return view('sales.filter');
+        $medicines = Medicine::query()->get();
+        return view('sales.filter',compact('medicines'));
     }
 
     public function fetchSales(Request $request)
@@ -509,6 +510,9 @@ class SalesController extends Controller
                     ->join('medicines', 'medicines.id', '=', 'sales_details.medicine_id')
                     ->join('customers', 'customers.id', '=', 'sales_details.customer_id')
                     ->select('sales.code', 'medicines.name', 'sales_details.quantity', 'sales_details.price', 'sales_details.profit', 'sales_details.date', 'customers.customer_name')
+                    ->when($request->medicine,function ($query,$medicine) {
+                        $query->where('medicines.id',$medicine);
+                    })
                     ->whereBetween('sales_details.date', [$from, $to])
                     ->get();
             return response()->json($data);
