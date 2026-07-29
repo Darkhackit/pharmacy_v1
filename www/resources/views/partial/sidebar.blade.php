@@ -63,6 +63,10 @@
                     <li class=""><a href="{{ route('sales.create') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Create Sales</span></a>
                     </li>
                     @endpermission
+                    @permission(['Antibiotics Sale','All'])
+                    <li class=""><a href="{{ route('sales.antibiotics') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Antibiotics Sales</span></a>
+                    </li>
+                    @endpermission
                     @permission(['wholesale Add','All'])
                     <li class=""><a href="{{ route('sales.wholesale') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Whole Sales</span></a>
                     </li>
@@ -225,11 +229,11 @@
             <li class=" nav-item"><a href="index.html"><i class="fa fa-thumbs-down"></i><span class="menu-title" data-i18n="Dashboard">Report</span></a>
                 <ul class="menu-content">
                     @permission(['All'])
-                    <li class=""><a href="{{ route('report.sales') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Sales Report</span></a>
+                    <li class=""><a href="{{ route('sales.report') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Sales Report</span></a>
                     </li>
                     @endpermission
                     @permission(['All'])
-                    <li class=""><a href="{{ route('purchases.return') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Purchases Report</span></a>
+                    <li class=""><a href="{{ route('filterMedicine') }}"><i class="feather icon-circle"></i><span class="menu-item" data-i18n="Analytics">Purchases Report</span></a>
                     </li>
                     @endpermission
                     @permission(['All'])

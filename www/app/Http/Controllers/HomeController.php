@@ -168,9 +168,12 @@ class HomeController extends Controller
     {
         $owing =  DB::table('purchase__owings')
             ->join('purchases', 'purchases.id', '=', 'purchase__owings.purchase_id')
+            ->join('suppliers', 'suppliers.id', '=', 'purchases.manufacture')
+            ->select('purchases.invoice_number', 'suppliers.company_name', 'purchase__owings.paid_amount', 'purchases.total', 'purchase__owings.id as own_id')
+            ->where('purchases.status', false)
             ->get();
 
-        dd($owing);
+        return response()->json($owing);
     }
 
     public function pay($id)

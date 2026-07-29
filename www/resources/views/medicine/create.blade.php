@@ -280,7 +280,7 @@
 
                                     </div>
                                     <div class="">
-                                        <label>Hide Medicine</label>
+                                        <label>Antibiotic (sell only on Antibiotics page)</label>
                                         <input type="checkbox" name="hidden" class="minimal"  >
                                     </div>
                                 </div>

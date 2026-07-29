@@ -30,6 +30,10 @@ class SalesController extends Controller
         $this->middleware('auth');
         // $this->middleware('MachineInfo');
         $this->middleware('FullyPaid');
+        // Only users with the "Antibiotics Sale" permission (or "All") can reach the antibiotics page.
+        $this->middleware('permission:Antibiotics Sale|All')->only('antibiotics');
+        // Sales Report is Administrator-only, matching its sidebar visibility (@permission(['All'])).
+        $this->middleware('permission:All')->only('report');
     }
     public function index(Request $request)
     {
@@ -51,16 +55,37 @@ class SalesController extends Controller
      */
     public function create()
     {
-//        dd(\request('date'));
         $customers = Customer::all();
-        //  $medicines = DB::table('medicines')->where('stock','>','0')->get();
-        if(\auth()->user()->email == "alicegodwill7@gmail.com") {
-            $medicines = Medicine::where('hidden',false)->get();
-        }else {
-            $medicines = DB::table('medicines')->orderBy('medicines.name', 'asc')->get();
-        }
+        // Normal sales page: exclude antibiotics (hidden = true), which have their own page.
+        $medicines = Medicine::where('hidden', false)->orderBy('name', 'asc')->get();
 
-        $bestSellers = DB::table('sales')
+        $bestSellers = $this->currentSellerTotals();
+
+        return view('sales.create', compact('customers', 'medicines', 'bestSellers'));
+    }
+
+    /**
+     * Dedicated sales page for antibiotics (medicines flagged hidden = true).
+     * Reuses the standard sales.create view with a filtered medicine list.
+     */
+    public function antibiotics()
+    {
+        $customers = Customer::all();
+        $medicines = Medicine::where('hidden', true)->orderBy('name', 'asc')->get();
+
+        $bestSellers = $this->currentSellerTotals();
+
+        $title = 'Antibiotics Sales';
+
+        return view('sales.create', compact('customers', 'medicines', 'bestSellers', 'title'));
+    }
+
+    /**
+     * Today's total sales for the currently authenticated seller.
+     */
+    private function currentSellerTotals()
+    {
+        return DB::table('sales')
             ->join('users', 'users.id', '=', 'sales.user_id')
             ->select(DB::raw('SUM(sales.total_price) as sale'), DB::raw('users.name'), DB::raw('users.image'))
             ->groupBy('sales.user_id')
@@ -68,8 +93,6 @@ class SalesController extends Controller
             ->where('sales.date', date('Y-m-d'))
             ->where('users.id', Auth::user()->id)
             ->get();
-        // dd($bestSellers);
-        return view('sales.create', compact('customers', 'medicines', 'bestSellers'));
     }
 
     public function getCurrentSales(): JsonResponse
@@ -104,7 +127,10 @@ class SalesController extends Controller
             $sale->tax = (float)$request->taxPrice;
             $sale->net_price = (float)$request->netPrice;
             $sale->total_price = (float)$request->total;
-            $sale->date = $request->date;
+            // Record the date the sale is actually saved (server time / Africa/Accra),
+            // not the date captured when the sales page was first opened.
+            $saleDate = date('Y-m-d');
+            $sale->date = $saleDate;
             $sale->payment_method = $request->PaymentMethod;
             $sale->type = $request->type;
 
@@ -143,19 +169,20 @@ class SalesController extends Controller
 
                     $profit = (float)$mainProfit[$i] - (float)$purchase[$i];
 
-                    if ($request->type != 'Profoma') {
-
-                        $remaining = (float)$stock[$i] - (float)$quantity[$i];
-                    }
-
-
-
-
-
                     $medicine = Medicine::find($medicineID[$i]);
+
                     if ($request->type != 'Profoma') {
 
-                        $medicine->stock = (float)$remaining;
+                        // Validate against the actual DB stock, not the client-supplied value,
+                        // to prevent overselling / tampered requests.
+                        if ((float)$quantity[$i] > (float)$medicine->stock) {
+
+                            throw new \Exception(
+                                'Insufficient stock for "' . $medicine->name . '". Available: ' . $medicine->stock
+                            );
+                        }
+
+                        $medicine->stock = (float)$medicine->stock - (float)$quantity[$i];
                     }
 
                     $medicine->number_of_sales = (float)$medicine->number_of_sales + (float)$quantity[$i];
@@ -171,7 +198,7 @@ class SalesController extends Controller
                     $sales_detail->quantity = (float)$quantity[$i];
                     $sales_detail->profit = $profit * (float)$quantity[$i];
                     $sales_detail->customer_id = $customer_id;
-                    $sales_detail->date = $request->date;
+                    $sales_detail->date = $saleDate;
 
                     $sales_detail->save();
                 }
@@ -264,10 +291,6 @@ class SalesController extends Controller
             $sales = DB::table('sales')->join('customers', 'customers.id', '=', 'sales.customer_id')->join('users', 'users.id', '=', 'sales.user_id')
                 ->whereBetween('sales.date', [$start, $end])->get();
         }
-
-        dd($sales);
-
-        // return view('sales.index', compact('sales'));
 
         return response()->json([$sales]);
     }

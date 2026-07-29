@@ -49,6 +49,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('med/report', 'MedicineController@reportMedicine')->name('med.report');
     Route::get('med/stock', 'MedicineController@checkStock')->name('med.stock');
     Route::resource('sales', 'SalesController');
+    Route::get('antibiotics/sales', 'SalesController@antibiotics')->name('sales.antibiotics');
     Route::get('profoma/invoice', 'SalesController@profoma')->name('profoma.invoice');
     Route::get('whole/sales', 'SalesController@wholesales')->name('sales.wholesale');
     Route::get('filter/sales','SalesController@getAllSales')->name('sales.filter');
@@ -102,7 +103,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('medicine/hidden/{id}','MedicineController@hidden');
     Route::get('medicine/check_name/{name}','MedicineController@check_name');
 
-    Route::get('report/sales','ReportController@sales')->name('report.sales');
 
 
 

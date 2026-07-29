@@ -25,11 +25,11 @@ class MachineInfo
          $pmac = strpos($mycomsys, $find_mac);
          $macaddress=substr($mycomsys,($pmac+36),17);
 
-          if($macaddress != "80-E8-2C-74-A7-FE") {
+        //   if($macaddress != "5C-53-10-29-02-55") {
 
 
-           return  redirect()->route('cutOff');
-          }
+        //    return  redirect()->route('cutOff');
+        //   }
 
         return $next($request);
     }

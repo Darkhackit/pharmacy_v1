@@ -89,6 +89,8 @@ class MedicineController extends Controller
         $medicine->side_effect = $request->effect;
         $medicine->unit_id = $request->unit_id;
         $medicine->wholesale = $request->wholesale;
+        // Flagged antibiotic -> hidden from the normal sales page, sold on the Antibiotics page.
+        $medicine->hidden = $request->has('hidden');
 
         if ($request->file('image')) {
 

@@ -7,7 +7,7 @@
     <div class="col-md-4 col-12">
         <div class="card">
             <div class="card-header">
-                <h4 class="card-title">Start Sales &nbsp; <span> sales Made : ₵
+                <h4 class="card-title">{{ $title ?? 'Start Sales' }} &nbsp; <span> sales Made : ₵
                    <span id="current_price"></span>
                 </span></h4>
             </div>
@@ -59,7 +59,7 @@
                                     <div class="form-group">
 
                                         <div class="position-relative ">
-                                           <input type="date" name="date" id="current_date" value="{{date('Y-m-d')}}" class="form-control ">
+                                           <input type="hidden" name="date" id="current_date" value="{{date('Y-m-d')}}" class="form-control ">
                                         </div>
                                     </div>
                                 </div>

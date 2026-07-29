@@ -61,7 +61,7 @@ class PurchaseController extends Controller
         $invoice_exist = Purchase::where('invoice_number',$request->invoice)->first();
         if($invoice_exist){
 
-            return response()->json(['error' => [
+            return response()->json(['errors' => [
                 'server' => ['invoice already exist']
             ]],422);
         }
@@ -125,7 +125,8 @@ class PurchaseController extends Controller
 
                     $medicine = Medicine::find($medicineID[$i]);
                     $now = now()->format('Y-m-d');
-                    $expiryDate = Carbon::createFromDate($expired[$i])->format('Y-m-d');
+                    // Use parse() (not createFromDate, which misreads a full date string as the year).
+                    $expiryDate = Carbon::parse($expired[$i])->format('Y-m-d');
 
                     if ((float)$request->purchase_price[$i] >= (float)$request->newPrice[$i]) {
                         DB::rollBack();
@@ -140,7 +141,7 @@ class PurchaseController extends Controller
                         ]],422);
                     }
 
-                    if (Carbon::createFromDate($now)->gt(Carbon::createFromDate($expiryDate))) {
+                    if ($expiryDate < $now) {
                         DB::rollBack();
                         return \response()->json(["errors" => [
                             "server" => ["The expiry date for {$medicine->name} is not correct"]
@@ -232,9 +233,37 @@ class PurchaseController extends Controller
      */
     public function destroy($id)
     {
-        Purchase::find($id)->delete();
+        $purchase = Purchase::find($id);
+        if (! $purchase) {
+            return response()->json(['errors' => [
+                'server' => ['Purchase not found']
+            ]], 404);
+        }
 
-        return response()->json(['success' => true]);
+        DB::beginTransaction();
+        try {
+            // Reverse the stock this purchase added, then remove its line items and owings.
+            $details = Purchase_Details::where('purchase_id', $purchase->id)->get();
+            foreach ($details as $detail) {
+                $medicine = Medicine::find($detail->medicine_id);
+                if ($medicine) {
+                    $medicine->stock = $medicine->stock - $detail->quantity;
+                    $medicine->update();
+                }
+            }
+
+            Purchase_Details::where('purchase_id', $purchase->id)->delete();
+            Purchase_Owing::where('purchase_id', $purchase->id)->delete();
+            $purchase->delete();
+
+            DB::commit();
+            return response()->json(['success' => true]);
+        } catch (\Exception $exception) {
+            DB::rollBack();
+            return response()->json(['errors' => [
+                'server' => [$exception->getMessage()]
+            ]], 422);
+        }
     }
 
     public function purchaseDetails($id) {
@@ -263,18 +292,18 @@ class PurchaseController extends Controller
             if($request->from_date != "" && $request->to_date != "")
             {
                 $data = DB::table('purchases')
-                ->join('manufacturers','manufacturers.id','=','purchases.manufacture')
+                ->join('suppliers','suppliers.id','=','purchases.manufacture')
                 ->join('payments','payments.id','=','purchases.payment')
-                ->select('purchases.id as id','purchases.purchase_id','purchases.invoice_number','purchases.purchase_date','purchases.total','manufacturers.manufacturer_name','payments.payment_name')
+                ->select('purchases.id as id','purchases.purchase_id','purchases.invoice_number','purchases.purchase_date','purchases.total','suppliers.company_name','payments.payment_name')
                 ->whereBetween('date',[$request->from_date,$request->to_date])
                 ->get();
             }
             else
             {
                 $data =  DB::table('purchases')
-                ->join('manufacturers','manufacturers.id','=','purchases.manufacture')
+                ->join('suppliers','suppliers.id','=','purchases.manufacture')
                 ->join('payments','payments.id','=','purchases.payment')
-                ->select('purchases.id as id','purchases.purchase_id','purchases.invoice_number','purchases.purchase_date','purchases.total','manufacturers.manufacturer_name','payments.payment_name')
+                ->select('purchases.id as id','purchases.purchase_id','purchases.invoice_number','purchases.purchase_date','purchases.total','suppliers.company_name','payments.payment_name')
                 ->orderBy('date','desc')
                 ->get();
 
@@ -298,8 +327,8 @@ class PurchaseController extends Controller
         $returns = DB::table('purchases')
         ->join('purchase__details','purchase__details.purchase_id','=','purchases.id')
         ->join('medicines','medicines.id','=','purchase__details.medicine_id')
-        ->join('manufacturers','manufacturers.id','=','purchases.manufacture')
-        ->select('medicines.name','manufacturers.manufacturer_name','medicines.id')
+        ->join('suppliers','suppliers.id','=','purchases.manufacture')
+        ->select('medicines.name','suppliers.company_name','medicines.id')
         ->where('purchases.id',$id)
 
         ->get();

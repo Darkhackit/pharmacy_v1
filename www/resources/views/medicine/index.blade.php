@@ -223,7 +223,7 @@
 
                                     <div class="col-md-6 col-12">
                                         <div class="">
-                                            <label>Hide Medicine</label>
+                                            <label>Antibiotic (sell only on Antibiotics page)</label>
                                             <input type="checkbox" id="hidden" name="hidden" class="minimal"  >
                                         </div>
                                     </div>

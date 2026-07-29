@@ -1,0 +1,21 @@
+# PHP Desktop / CEF runtime binaries (not source)
+*.pak
+*.dll
+*.bin
+*.dat
+phpdesktop-chrome.exe
+php-cgi-with-ext
+license.txt
+locales/
+php/
+webcache/
+widevinecdmadapter.dll
+
+# Build artifacts / archives
+*.zip
+debug.log
+
+# Editor
+.idea/
+*.iml
+.DS_Store

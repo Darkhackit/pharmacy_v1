@@ -16,7 +16,7 @@ class PaymentController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        $this->middleware('MachineInfo');
+        // $this->middleware('MachineInfo');
         $this->middleware('FullyPaid');
     }
     public function index()

@@ -186,7 +186,7 @@
                             output += '<tr>',
                             output += '<td>'+i.invoice_number+'</td>'
                             output += '<td>'+i.purchase_id+'</td>'
-                            output += '<td>'+i.manufacturer_name+'</td>'
+                            output += '<td>'+i.company_name+'</td>'
                             output += '<td>'+i.payment_name+'</td>'
                             output += '<td>'+i.purchase_date+'</td>'
                             output += '<td class="total">'+i.total+'</td>'
@@ -285,7 +285,7 @@
             success:function (response) {
 
                 console.log(response)
-                $('#manuName').html(response[0].manufacturer_name)
+                $('#manuName').html(response[0].company_name)
                 $('#invoice').html(response[0].invoice_number)
                 $('#dates').html(response[0].purchase_date)
                 $('#mainTotal').html('₵'+response[0].mainTotal)

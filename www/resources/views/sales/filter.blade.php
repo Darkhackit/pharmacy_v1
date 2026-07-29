@@ -15,12 +15,11 @@
                         </div>
                          <div class="col-md-6 col-12 mt-2">
                              <div class="form-label-group">
-                                 <select name="manufacture_id" id="manufacture_id" class="form-control select2 pnam" >
-                                     <option disabled selected>Select Medicine</option>
+                                 <select name="medicine_id" id="medicine_id" class="form-control select2 pnam" >
+                                     <option value="">All Medicines</option>
                                           @foreach ($medicines as $medicine)
                                               <option value="{{ $medicine->id }}">{{ $medicine->name }}</option>
                                           @endforeach
-
                                  </select>
                                  <label for="first-name-column">Select Medicine</label>
                              </div>
@@ -39,27 +38,29 @@
                 <div class="card-content">
                     <div class="card-body card-dashboard">
 
+                        <p class="mb-1"><strong>Records:</strong> <span id="total_records">0</span></p>
                         <div class="table-responsive">
-                            <table class="table table-striped dataex-html5-selectors filterTable">
+                            <table class="table table-striped table-bordered filterTable">
                                 <thead>
                                     <tr>
                                         <th>Sales ID</th>
                                         <th>Medicine Name</th>
-                                        <th>Quantity</th>
-                                        <th>Price</th>
+                                        <th>Customer</th>
+                                        <th class="text-right">Quantity</th>
+                                        <th class="text-right">Price (&#8373;)</th>
+                                        <th class="text-right">Profit (&#8373;)</th>
                                         <th>Date</th>
-
                                     </tr>
                                 </thead>
                                 <tbody>
 
                                 </tbody>
                                 <tfoot>
-                                    <tr>
-                                        <th>TOTAL SALES:</th>
-                                        <td class="totalSales"></td>
-                                        <th>TOTAL PROFIT:</th>
-                                        <td class="totalProfit"></td>
+                                    <tr class="font-weight-bold">
+                                        <th colspan="4" class="text-right">TOTAL SALES:</th>
+                                        <td class="text-right totalSales">0.00</td>
+                                        <td class="text-right totalProfit">0.00</td>
+                                        <td></td>
                                     </tr>
                                 </tfoot>
 
@@ -84,125 +85,90 @@
 <script>
     $(document).ready(function ()
     {
-        let date = new Date();
-
         $('.input-daterange').datepicker({
-
-            todayBtn:'linked',
-            format:'yyyy-mm-dd',
-            autoclose:true
+            todayBtn: 'linked',
+            format: 'yyyy-mm-dd',
+            autoclose: true
         });
-
-        let medicine = $('#manufacture_id').val()
 
         let _token = $('input[name="_token"]').val();
 
-        fetch_data()
+        function money(value) {
+            return (parseFloat(value) || 0).toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
 
-        function fetch_data (from_date = "" , to_date = "",medicine = "")
+        function fetch_data(from_date = "", to_date = "", medicine = "")
         {
-
             $.ajax({
-
-                url:"{{ route('sales.fetch_data') }}",
-                method:'POST',
-                data:{from_date:from_date,to_date:to_date,_token:_token,medicine:medicine},
-                dataType:'json',
+                url: "{{ route('sales.fetch_data') }}",
+                method: 'POST',
+                data: { from_date: from_date, to_date: to_date, _token: _token, medicine: medicine },
+                dataType: 'json',
                 success: function (data)
                 {
-
-                    console.log(data)
-                    let totalSales = 0
-                    let totalProfit = 0
+                    let totalSales = 0;
+                    let totalProfit = 0;
                     let output = "";
+
                     $('#total_records').text(data.length);
+
+                    if (data.length === 0) {
+                        output = '<tr><td colspan="7" class="text-center text-muted">No sales found for this selection.</td></tr>';
+                    }
+
                     data.forEach(function (i) {
+                        output += '<tr>';
+                        output += '<td>' + i.code + '</td>';
+                        output += '<td>' + i.name + '</td>';
+                        output += '<td>' + (i.customer_name || '') + '</td>';
+                        output += '<td class="text-right">' + i.quantity + '</td>';
+                        output += '<td class="text-right">' + money(i.price) + '</td>';
+                        output += '<td class="text-right">' + money(i.profit) + '</td>';
+                        output += '<td>' + i.date + '</td>';
+                        output += '</tr>';
 
-                            output += '<tr>',
-                            output += '<td>'+i.code+'</td>'
-                            output += '<td>'+i.name+'</td>'
-                            output += '<td>'+i.quantity+'</td>'
-                            output += '<td>'+i.price+'</td>'
-                            output += '<td>'+i.date+'</td>'
+                        totalSales += parseFloat(i.price) || 0;
+                        totalProfit += parseFloat(i.profit) || 0;
+                    });
 
-
-                            totalSales += parseFloat(i.price) ;
-                            totalProfit += parseFloat(i.profit)
-                    })
-
-
-
-
-
-                    $('tbody').html(output)
-                    $('.totalSales').html(totalSales)
-                    $('.totalProfit').html(totalProfit)
-                   // console.log(total)
-
-
+                    $('tbody').html(output);
+                    $('.totalSales').text(money(totalSales));
+                    $('.totalProfit').text(money(totalProfit));
                 }
-
-
-            })
-
-
+            });
         }
 
-
-
-
-        function sumTotalPrice() {
-
-            var priceItem = $('.total').html()
-            var sumPriceArray = [0];
-
-            priceItem.forEach(function (i) {
-
-                sumPriceArray.push(parseFloat($(i)))
-            })
-
-            function sumArrayPrices(total , number) {
-
-                return total + number;
-
-            }
-
-            var sumArrayPrices = sumPriceArray.reduce(sumArrayPrices)
-
-          console.log(sumArrayPrices)
-
-
-        }
-
-
+        // Initial load (defaults to the current month on the server).
+        fetch_data();
 
         $('#filter').click(function ()
         {
-            let from_date = $('#from_date').val()
-            let to_date = $('#to_date').val()
-            let medicine = $('#manufacture_id').val()
+            let from_date = $('#from_date').val();
+            let to_date = $('#to_date').val();
+            let medicine = $('#medicine_id').val();
 
-            if(from_date != "" && to_date != "")
+            if (from_date !== "" && to_date !== "")
             {
-                fetch_data(from_date,to_date,medicine)
+                fetch_data(from_date, to_date, medicine);
             }
             else
             {
-                alert('Both Date are required')
+                alert('Both dates are required');
             }
-        })
+        });
 
         $('#refresh').click(function ()
         {
-            let from_date =  $('#from_date').val('')
-            let to_date = $('#to_date').val('')
-            let medicine = $('#manufacture_id').val()
+            $('#from_date').val('');
+            $('#to_date').val('');
+            $('#medicine_id').val('').trigger('change');
 
-            fetch_data(from_date,to_date,medicine)
-        })
-
-
-    })
+            fetch_data('', '', '');
+        });
+    });
 
 </script>
 
